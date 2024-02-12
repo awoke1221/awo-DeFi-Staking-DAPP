@@ -11,17 +11,15 @@ pragma solidity ^0.8.9;
 
 contract RewardToken is ERC20, Ownable, AccessControl, ERC20Burnable {
     using SafeERC20 for IERC20;
-   
 
     mapping(address => uint256) private _balances;
     uint256 private _totalSupply;
 
-    bytes32 public constant MANAGER_ROLE = keccak256('MANAGER_ROLE');
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
 
     constructor() ERC20("awo", "awoT") Ownable(msg.sender) {
-        _setRoleAdmin(DEFAULT_ADMIN_ROLE, bytes32(uint256(uint160(msg.sender))));
-        _setRoleAdmin(MANAGER_ROLE, bytes32(uint256(uint160(msg.sender))));
-       
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MANAGER_ROLE, msg.sender);
     }
 
     function mint(address to, uint256 amount) external {
@@ -31,8 +29,13 @@ contract RewardToken is ERC20, Ownable, AccessControl, ERC20Burnable {
         _mint(to, amount);
     }
 
-    function safeAwoTransfer(address _to, uint256 amount) external{
+    function safeAwoTransfer(address _to, uint256 _amount) external {
         require(hasRole(MANAGER_ROLE, msg.sender), "Not allowed");
-
+        uint256 awoBallance = balanceOf(address(this));
+        if (awoBallance > _amount) {
+            transfer(_to, awoBallance);
+        } else {
+            transfer(_to, _amount);
+        }
     }
 }
